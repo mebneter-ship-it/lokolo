@@ -24,9 +24,9 @@ export default function LoginPage() {
 
     try {
       if (isLogin) {
-        // LOGIN
+        // LOGIN - Let homepage handle role-based routing
         await signInWithEmailAndPassword(auth, email, password);
-        router.push('/dashboard');
+        router.push('/'); // Homepage will redirect based on user role
       } else {
         // SIGNUP
         if (!fullName.trim()) {
@@ -39,6 +39,7 @@ export default function LoginPage() {
           displayName: fullName,
         });
 
+        // Sync user to database with role
         fetch('/api/auth/sync-user', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -50,10 +51,11 @@ export default function LoginPage() {
           }),
         }).catch(err => console.error('Sync failed (non-critical):', err));
 
+        // Route to appropriate dashboard after signup
         if (role === 'supplier') {
-          router.push('/register-business');
+          router.push('/supplier/dashboard');
         } else {
-          router.push('/dashboard');
+          router.push('/consumer');
         }
       }
     } catch (err: any) {
