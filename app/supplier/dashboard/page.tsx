@@ -1,160 +1,277 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useAuth } from '@/lib/AuthContext';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { signOut } from 'firebase/auth';
+import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { brandColors, gradients } from '@/lib/theme';
-import Link from 'next/link';
+import { brandColors } from '@/lib/theme';
 
-export default function Dashboard() {
-  const { user } = useAuth();
+interface Business {
+  id: string;
+  business_name: string;
+  category: string;
+  verification_status: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export default function SupplierDashboard() {
   const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [stats, setStats] = useState({
+    total: 0,
+    verified: 0,
+    pending: 0,
+    active: 0
+  });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) {
-      router.push('/login');
-    }
-  }, [user, router]);
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+        fetchBusinesses(currentUser.uid);
+      } else {
+        router.push('/login');
+      }
+    });
 
-  const handleLogout = async () => {
+    return () => unsubscribe();
+  }, [router]);
+
+  const fetchBusinesses = async (uid: string) => {
     try {
-      await signOut(auth);
-      router.push('/login');
+      const response = await fetch(`/api/businesses?supplier_uid=${uid}`);
+      if (response.ok) {
+        const data = await response.json();
+        const businessList = data.businesses || [];
+        setBusinesses(businessList);
+        
+        // Calculate stats
+        setStats({
+          total: businessList.length,
+          verified: businessList.filter((b: Business) => b.verification_status === 'verified').length,
+          pending: businessList.filter((b: Business) => b.verification_status === 'pending').length,
+          active: businessList.filter((b: Business) => b.is_active).length
+        });
+      }
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('Error fetching businesses:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (!user) {
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: gradients.background }}>
-        <p className="text-gray-800 font-semibold">Loading...</p>
+      <div className="min-h-screen flex items-center justify-center" 
+           style={{ backgroundColor: brandColors.background }}>
+        <div className="text-center">
+          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-current border-r-transparent"
+               style={{ borderColor: brandColors.primary, borderRightColor: 'transparent' }}>
+          </div>
+          <p className="mt-4 text-lg" style={{ color: brandColors.textLight }}>
+            Loading dashboard...
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen" style={{ background: gradients.background }}>
-      {/* Header */}
-      <div className="bg-white shadow-md">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold" style={{ color: brandColors.primary }}>
-            Lokolo Dashboard
-          </h1>
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 border-2 rounded-lg font-semibold transition-colors hover:bg-orange-50"
-            style={{ borderColor: brandColors.primary, color: brandColors.primary }}
-          >
-            Logout
-          </button>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-12">
+    <div className="min-h-screen" style={{ backgroundColor: brandColors.background }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Welcome Header */}
         <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {user.displayName || user.email}! 👋
-          </h2>
-          <p className="text-gray-800 font-semibold">
-            What would you like to do today?
+          <h1 className="text-3xl font-bold mb-2" style={{ color: brandColors.text }}>
+            Welcome back! 👋
+          </h1>
+          <p style={{ color: brandColors.textLight }}>
+            {user?.email}
           </p>
         </div>
 
-        {/* Action Cards */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {/* My Businesses */}
-          <Link href="/my-businesses">
-            <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow cursor-pointer border-2 border-transparent hover:border-orange-500">
-              <div className="text-5xl mb-4">🏪</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">My Businesses</h3>
-              <p className="text-gray-700 font-medium">
-                View, edit, and manage your registered businesses
-              </p>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium" style={{ color: brandColors.textLight }}>
+                  Total Businesses
+                </p>
+                <p className="text-3xl font-bold mt-2" style={{ color: brandColors.primary }}>
+                  {stats.total}
+                </p>
+              </div>
+              <div className="text-4xl">🏢</div>
             </div>
-          </Link>
+          </div>
 
-          {/* Register New Business */}
-          <Link href="/register-business">
-            <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow cursor-pointer border-2 border-transparent hover:border-orange-500">
-              <div className="text-5xl mb-4">➕</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Add Business</h3>
-              <p className="text-gray-700 font-medium">
-                Register a new business on the platform
-              </p>
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium" style={{ color: brandColors.textLight }}>
+                  Verified
+                </p>
+                <p className="text-3xl font-bold mt-2" style={{ color: brandColors.accent }}>
+                  {stats.verified}
+                </p>
+              </div>
+              <div className="text-4xl">✅</div>
             </div>
-          </Link>
-
-          {/* Find Businesses (Coming Soon) */}
-          <div className="bg-white rounded-lg shadow-lg p-8 opacity-60">
-            <div className="text-5xl mb-4">🗺️</div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Find Businesses</h3>
-            <p className="text-gray-700 font-medium">
-              Discover businesses near you (Coming soon)
-            </p>
           </div>
 
-          {/* Profile Settings (Coming Soon) */}
-          <div className="bg-white rounded-lg shadow-lg p-8 opacity-60">
-            <div className="text-5xl mb-4">⚙️</div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Settings</h3>
-            <p className="text-gray-700 font-medium">
-              Manage your account settings (Coming soon)
-            </p>
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium" style={{ color: brandColors.textLight }}>
+                  Pending Review
+                </p>
+                <p className="text-3xl font-bold mt-2" style={{ color: brandColors.secondary }}>
+                  {stats.pending}
+                </p>
+              </div>
+              <div className="text-4xl">⏳</div>
+            </div>
           </div>
 
-          {/* Messages (Coming Soon) */}
-          <div className="bg-white rounded-lg shadow-lg p-8 opacity-60">
-            <div className="text-5xl mb-4">💬</div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Messages</h3>
-            <p className="text-gray-700 font-medium">
-              Connect with customers (Coming soon)
-            </p>
-          </div>
-
-          {/* Analytics (Coming Soon) */}
-          <div className="bg-white rounded-lg shadow-lg p-8 opacity-60">
-            <div className="text-5xl mb-4">📊</div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Analytics</h3>
-            <p className="text-gray-700 font-medium">
-              View your business performance (Coming soon)
-            </p>
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium" style={{ color: brandColors.textLight }}>
+                  Active
+                </p>
+                <p className="text-3xl font-bold mt-2" style={{ color: brandColors.primary }}>
+                  {stats.active}
+                </p>
+              </div>
+              <div className="text-4xl">🟢</div>
+            </div>
           </div>
         </div>
 
-        {/* Quick Stats (Placeholder) */}
-        <div className="mt-12 bg-white rounded-lg shadow-lg p-8">
-          <h3 className="text-2xl font-bold text-gray-900 mb-6">Quick Stats</h3>
-          <div className="grid gap-6 md:grid-cols-4">
-            <div className="text-center">
-              <div className="text-3xl font-bold mb-2" style={{ color: brandColors.primary }}>
-                -
-              </div>
-              <p className="text-gray-700 font-semibold">Total Businesses</p>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold mb-2" style={{ color: brandColors.secondary }}>
-                -
-              </div>
-              <p className="text-gray-700 font-semibold">Pending Verification</p>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold mb-2" style={{ color: brandColors.accent }}>
-                -
-              </div>
-              <p className="text-gray-700 font-semibold">Profile Views</p>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold mb-2 text-gray-600">
-                -
-              </div>
-              <p className="text-gray-700 font-semibold">Messages</p>
-            </div>
+        {/* Quick Actions */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+          <h2 className="text-xl font-bold mb-4" style={{ color: brandColors.text }}>
+            Quick Actions
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <button
+              onClick={() => router.push('/register-business')}
+              className="p-4 rounded-lg text-left transition-all hover:shadow-lg"
+              style={{ backgroundColor: brandColors.primary, color: 'white' }}
+            >
+              <div className="text-3xl mb-2">➕</div>
+              <h3 className="font-bold mb-1">Add New Business</h3>
+              <p className="text-sm opacity-90">Register a new business listing</p>
+            </button>
+
+            <button
+              onClick={() => router.push('/my-businesses')}
+              className="p-4 rounded-lg text-left transition-all hover:shadow-lg"
+              style={{ backgroundColor: brandColors.accent, color: 'white' }}
+            >
+              <div className="text-3xl mb-2">🏢</div>
+              <h3 className="font-bold mb-1">Manage Businesses</h3>
+              <p className="text-sm opacity-90">View and edit your listings</p>
+            </button>
+
+            <button
+              onClick={() => router.push('/supplier/analytics')}
+              className="p-4 rounded-lg text-left transition-all hover:shadow-lg"
+              style={{ backgroundColor: brandColors.secondary, color: 'white' }}
+            >
+              <div className="text-3xl mb-2">📈</div>
+              <h3 className="font-bold mb-1">View Analytics</h3>
+              <p className="text-sm opacity-90">Track your performance</p>
+            </button>
           </div>
         </div>
+
+        {/* Recent Businesses */}
+        {businesses.length > 0 && (
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-bold mb-4" style={{ color: brandColors.text }}>
+              Your Businesses
+            </h2>
+            <div className="space-y-3">
+              {businesses.slice(0, 5).map((business) => (
+                <div
+                  key={business.id}
+                  className="flex items-center justify-between p-4 rounded-lg cursor-pointer transition-colors hover:bg-gray-50"
+                  onClick={() => router.push(`/my-businesses`)}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="text-3xl">🏢</div>
+                    <div>
+                      <h3 className="font-semibold" style={{ color: brandColors.text }}>
+                        {business.business_name}
+                      </h3>
+                      <p className="text-sm" style={{ color: brandColors.textLight }}>
+                        {business.category}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="px-3 py-1 rounded-full text-xs font-semibold"
+                      style={{
+                        backgroundColor:
+                          business.verification_status === 'verified'
+                            ? '#D1FAE5'
+                            : business.verification_status === 'pending'
+                            ? '#FEF3C7'
+                            : '#FEE2E2',
+                        color:
+                          business.verification_status === 'verified'
+                            ? '#065F46'
+                            : business.verification_status === 'pending'
+                            ? '#92400E'
+                            : '#991B1B',
+                      }}
+                    >
+                      {business.verification_status}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {businesses.length > 5 && (
+              <button
+                onClick={() => router.push('/my-businesses')}
+                className="mt-4 w-full py-2 rounded-lg font-semibold"
+                style={{
+                  backgroundColor: brandColors.background,
+                  color: brandColors.primary,
+                  border: `2px solid ${brandColors.primary}`
+                }}
+              >
+                View All Businesses
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Empty State */}
+        {businesses.length === 0 && (
+          <div className="bg-white rounded-lg shadow-md p-12 text-center">
+            <div className="text-6xl mb-4">🏢</div>
+            <h3 className="text-2xl font-bold mb-2" style={{ color: brandColors.text }}>
+              No Businesses Yet
+            </h3>
+            <p className="mb-6" style={{ color: brandColors.textLight }}>
+              Get started by adding your first business listing
+            </p>
+            <button
+              onClick={() => router.push('/register-business')}
+              className="px-8 py-3 rounded-lg font-semibold text-white"
+              style={{ backgroundColor: brandColors.primary }}
+            >
+              Add Your First Business
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

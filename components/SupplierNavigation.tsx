@@ -1,10 +1,9 @@
 'use client';
 
 import { useRouter, usePathname } from 'next/navigation';
-import { auth } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 import { brandColors } from '@/lib/theme';
-import Image from 'next/image';
 
 export default function SupplierNavigation() {
   const router = useRouter();
@@ -15,91 +14,118 @@ export default function SupplierNavigation() {
       await signOut(auth);
       router.push('/login');
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('Error signing out:', error);
+      alert('Failed to sign out. Please try again.');
     }
   };
 
   const navItems = [
-    { name: 'Dashboard', path: '/supplier/dashboard', icon: 'home' },
-    { name: 'My Businesses', path: '/supplier/businesses', icon: 'building' },
-    { name: 'Add Business', path: '/supplier/register-business', icon: 'plus' },
+    { label: 'Dashboard', path: '/supplier/dashboard', icon: '📊' },
+    { label: 'My Businesses', path: '/my-businesses', icon: '🏢' },
+    { label: 'Add Business', path: '/register-business', icon: '➕' },
   ];
 
-  const isActive = (path: string) => pathname === path;
-
   return (
-    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <nav className="shadow-md" style={{ backgroundColor: 'white' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => router.push('/supplier/dashboard')}>
-            <Image
-              src="/lokolo-logo.png"
-              alt="Lokolo"
-              width={40}
-              height={40}
-              className="rounded"
-            />
-            <span className="text-xl font-bold" style={{ color: brandColors.primary }}>
+          <div 
+            className="flex items-center cursor-pointer"
+            onClick={() => router.push('/supplier/dashboard')}
+          >
+            <span className="text-2xl font-bold" style={{ color: brandColors.primary }}>
               Lokolo
+            </span>
+            <span className="ml-2 px-2 py-1 text-xs font-semibold rounded-full text-white"
+                  style={{ backgroundColor: brandColors.accent }}>
+              Supplier
             </span>
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden md:flex items-center space-x-1">
             {navItems.map((item) => (
               <button
                 key={item.path}
                 onClick={() => router.push(item.path)}
-                className={`font-medium transition-colors ${
-                  isActive(item.path)
-                    ? 'font-semibold'
-                    : 'hover:opacity-80'
-                }`}
-                style={{ color: isActive(item.path) ? brandColors.primary : brandColors.textLight }}
+                className="px-4 py-2 rounded-lg font-medium transition-colors"
+                style={{
+                  backgroundColor: pathname === item.path ? brandColors.primary : 'transparent',
+                  color: pathname === item.path ? 'white' : brandColors.text,
+                }}
               >
-                {item.name}
+                <span className="mr-2">{item.icon}</span>
+                {item.label}
               </button>
             ))}
             
             <button
               onClick={handleLogout}
-              className="px-4 py-2 rounded-lg font-semibold text-white transition-all hover:opacity-90"
-              style={{ backgroundColor: brandColors.primary }}
+              className="ml-4 px-4 py-2 rounded-lg font-medium transition-colors"
+              style={{
+                backgroundColor: brandColors.background,
+                color: brandColors.text,
+                border: `2px solid ${brandColors.primary}`
+              }}
             >
-              Logout
+              🚪 Logout
             </button>
           </div>
 
           {/* Mobile Menu Button */}
           <div className="md:hidden">
             <button
-              onClick={handleLogout}
-              className="px-4 py-2 rounded-lg font-semibold text-white"
-              style={{ backgroundColor: brandColors.primary }}
+              onClick={() => {
+                const menu = document.getElementById('mobile-menu');
+                if (menu) {
+                  menu.classList.toggle('hidden');
+                }
+              }}
+              className="p-2 rounded-lg"
+              style={{ color: brandColors.primary }}
             >
-              Logout
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
             </button>
           </div>
         </div>
 
-        {/* Mobile Navigation */}
-        <div className="md:hidden flex gap-4 pb-3 overflow-x-auto">
-          {navItems.map((item) => (
+        {/* Mobile Menu */}
+        <div id="mobile-menu" className="hidden md:hidden pb-4">
+          <div className="space-y-2">
+            {navItems.map((item) => (
+              <button
+                key={item.path}
+                onClick={() => {
+                  router.push(item.path);
+                  const menu = document.getElementById('mobile-menu');
+                  if (menu) menu.classList.add('hidden');
+                }}
+                className="w-full text-left px-4 py-3 rounded-lg font-medium"
+                style={{
+                  backgroundColor: pathname === item.path ? brandColors.primary : brandColors.background,
+                  color: pathname === item.path ? 'white' : brandColors.text,
+                }}
+              >
+                <span className="mr-2">{item.icon}</span>
+                {item.label}
+              </button>
+            ))}
+            
             <button
-              key={item.path}
-              onClick={() => router.push(item.path)}
-              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                isActive(item.path) ? 'text-white' : ''
-              }`}
+              onClick={handleLogout}
+              className="w-full text-left px-4 py-3 rounded-lg font-medium"
               style={{
-                backgroundColor: isActive(item.path) ? brandColors.primary : `${brandColors.primary}20`,
-                color: isActive(item.path) ? 'white' : brandColors.primary
+                backgroundColor: brandColors.background,
+                color: brandColors.text,
+                border: `2px solid ${brandColors.primary}`
               }}
             >
-              {item.name}
+              🚪 Logout
             </button>
-          ))}
+          </div>
         </div>
       </div>
     </nav>
