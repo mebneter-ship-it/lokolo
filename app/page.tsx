@@ -37,22 +37,22 @@ export default function HomePage() {
         const userData = await response.json();
         console.log('User data received:', userData);
 
-        if (!userData || !userData.role) {
+if (!userData || !userData.user || !userData.user.role) {
           throw new Error('User role not found in database');
         }
 
         // Route based on role
-        if (userData.role === 'consumer') {
+        if (userData.user.role === 'consumer') {
           console.log('Routing consumer to /consumer');
           router.push('/consumer');
-        } else if (userData.role === 'supplier') {
+        } else if (userData.user.role === 'supplier') {
           console.log('Routing supplier to /supplier/dashboard');
           router.push('/supplier/dashboard');
-        } else if (userData.role === 'admin') {
+        } else if (userData.user.role === 'admin') {
           console.log('Routing admin to /admin/dashboard');
           router.push('/admin/dashboard');
         } else {
-          throw new Error(`Unknown role: ${userData.role}`);
+          throw new Error(`Unknown role: ${userData.user.role}`);
         }
       } catch (err) {
         console.error('Error during routing:', err);
