@@ -1,0 +1,44 @@
+steps:
+  # Build the container image with the Google Maps API key
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '--build-arg'
+      - 'NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${_GOOGLE_MAPS_API_KEY}'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/lokolo-web:$COMMIT_SHA'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/lokolo-web:latest'
+      - '.'
+
+  # Push the container image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/lokolo-web:$COMMIT_SHA']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/lokolo-web:latest']
+
+  # Deploy container image to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'lokolo-web'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/lokolo-web:$COMMIT_SHA'
+      - '--region'
+      - 'africa-south1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+
+substitutions:
+  _GOOGLE_MAPS_API_KEY: 'AIzaSyBQtT6_hjIQK_0RP6HkWsSyGQEmen1DcFk'
+
+images:
+  - 'gcr.io/$PROJECT_ID/lokolo-web:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/lokolo-web:latest'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
