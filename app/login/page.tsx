@@ -25,8 +25,32 @@ export default function LoginPage() {
     try {
       if (isLogin) {
         // LOGIN
-        await signInWithEmailAndPassword(auth, email, password);
-        router.push('/dashboard');
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+
+        // Fetch user's role from database
+        try {
+          const response = await fetch(`/api/users/${userCredential.user.uid}`);
+          const data = await response.json();
+
+          if (data.success && data.user && data.user.role) {
+            // Route based on user's role
+            if (data.user.role === 'consumer') {
+              router.push('/consumer');
+            } else if (data.user.role === 'supplier') {
+              router.push('/supplier/dashboard');
+            } else {
+              // Fallback to generic dashboard
+              router.push('/dashboard');
+            }
+          } else {
+            // User not found in database, route to dashboard
+            router.push('/dashboard');
+          }
+        } catch (err) {
+          console.error('Error fetching user role:', err);
+          // On error, fallback to dashboard
+          router.push('/dashboard');
+        }
       } else {
         // SIGNUP
         if (!fullName.trim()) {
@@ -51,9 +75,9 @@ export default function LoginPage() {
         }).catch(err => console.error('Sync failed (non-critical):', err));
 
         if (role === 'supplier') {
-          router.push('/register-business');
+          router.push('/supplier/dashboard');
         } else {
-          router.push('/dashboard');
+          router.push('/consumer');
         }
       }
     } catch (err: any) {
