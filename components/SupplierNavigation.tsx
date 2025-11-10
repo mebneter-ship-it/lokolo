@@ -21,7 +21,7 @@ export default function SupplierNavigation() {
 
   const navItems = [
     { label: 'Dashboard', path: '/supplier/dashboard', icon: '📊' },
-    { label: 'My Businesses', path: '/my-businesses', icon: '🏢' },
+    { label: 'My Businesses', path: '/supplier/my-businesses', icon: '🏢' },
     { label: 'Add Business', path: '/register-business', icon: '➕' },
   ];
 
