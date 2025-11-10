@@ -17,6 +17,14 @@ steps:
       - 'NEXT_PUBLIC_FIREBASE_APP_ID=1:86009822188:web:dc701cc0a17f65fe551ec9'
       - 'NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=AIzaSyBQtT6_hjIQK_0RP6HkWsSyGQEmen1DcFk'
   
+  # Build Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/lokolo-platform/lokolo-web', '.']
+  
+  # Push to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/lokolo-platform/lokolo-web']
+  
   # Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
@@ -24,7 +32,7 @@ steps:
       - 'run'
       - 'deploy'
       - 'lokolo-web'
-      - '--source=.'
+      - '--image=gcr.io/lokolo-platform/lokolo-web'
       - '--region=africa-south1'
       - '--platform=managed'
       - '--allow-unauthenticated'
