@@ -111,10 +111,25 @@ export default function BusinessDetailPage() {
     fetchPhotos();
   }, [businessId]);
 
-  const handleGetDirections = () => {
+  const handleShareLocation = async () => {
     if (business) {
-      const url = `https://www.google.com/maps/dir/?api=1&destination=${business.latitude},${business.longitude}`;
-      window.open(url, '_blank');
+      const shareData = {
+        title: business.business_name,
+        text: `Get directions to ${business.business_name}`,
+        url: `https://www.google.com/maps/dir/?api=1&destination=${business.latitude},${business.longitude}`
+      };
+
+      try {
+        if (navigator.share) {
+          await navigator.share(shareData);
+        } else {
+          // Fallback: copy to clipboard
+          await navigator.clipboard.writeText(shareData.url);
+          alert('Location link copied to clipboard!');
+        }
+      } catch (err) {
+        console.error('Error sharing:', err);
+      }
     }
   };
 
@@ -250,13 +265,13 @@ export default function BusinessDetailPage() {
         {/* Action Buttons */}
         <div className="grid grid-cols-2 gap-3">
           <button
-            onClick={handleGetDirections}
+            onClick={handleShareDirections}
             className="flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-yellow-500 text-white px-4 py-3 rounded-xl font-semibold hover:from-orange-600 hover:to-yellow-600 transition-all shadow-md"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
             </svg>
-            Directions
+            Share Location
           </button>
           
           {business.whatsapp_number && (
