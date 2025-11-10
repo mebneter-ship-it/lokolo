@@ -159,7 +159,7 @@ export default function ConsumerMapPage() {
             <AdvancedMarker
               key={business.id}
               position={{ lat: business.latitude, lng: business.longitude }}
-              onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${business.latitude},${business.longitude}`, "_blank")}
+              onClick={() => router.push(`/consumer/business/${business.id}`)}
             >
               <Pin
                 background={brandColors.primary}
