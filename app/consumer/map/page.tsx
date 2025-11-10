@@ -146,7 +146,7 @@ export default function ConsumerMapPage() {
           style={{ width: '100%', height: '100%' }}
         >
           {/* User location marker */}
-          <AdvancedMarker position={userLocation}>
+          <AdvancedMarker position={{ lat: userLocation.lat, lng: userLocation.lng }}>
             <Pin
               background={brandColors.accent}
               borderColor={brandColors.text}
