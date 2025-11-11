@@ -42,7 +42,7 @@ export default function SupplierDashboard() {
 
   const fetchBusinesses = async (uid: string) => {
     try {
-      const response = await fetch(`/api/businesses?supplier_uid=${uid}`);
+      const response = await fetch(`/api/businesses?user_uid=${uid}`);
       if (response.ok) {
         const data = await response.json();
         const businessList = data.businesses || [];
