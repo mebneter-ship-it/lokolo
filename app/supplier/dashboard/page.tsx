@@ -42,7 +42,7 @@ export default function SupplierDashboard() {
 
   const fetchBusinesses = async (uid: string) => {
     try {
-      const response = await fetch(`/api/businesses?user_uid=${uid}`);
+      const response = await fetch(`/api/businesses?user_id=${uid}`);
       if (response.ok) {
         const data = await response.json();
         const businessList = data.businesses || [];
@@ -148,44 +148,6 @@ export default function SupplierDashboard() {
               </div>
               <div className="text-4xl">🟢</div>
             </div>
-          </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-xl font-bold mb-4" style={{ color: brandColors.text }}>
-            Quick Actions
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button
-              onClick={() => router.push('/register-business')}
-              className="p-4 rounded-lg text-left transition-all hover:shadow-lg"
-              style={{ backgroundColor: brandColors.primary, color: 'white' }}
-            >
-              <div className="text-3xl mb-2">➕</div>
-              <h3 className="font-bold mb-1">Add New Business</h3>
-              <p className="text-sm opacity-90">Register a new business listing</p>
-            </button>
-
-            <button
-              onClick={() => router.push('/my-businesses')}
-              className="p-4 rounded-lg text-left transition-all hover:shadow-lg"
-              style={{ backgroundColor: brandColors.accent, color: 'white' }}
-            >
-              <div className="text-3xl mb-2">🏢</div>
-              <h3 className="font-bold mb-1">Manage Businesses</h3>
-              <p className="text-sm opacity-90">View and edit your listings</p>
-            </button>
-
-            <button
-              onClick={() => router.push('/supplier/analytics')}
-              className="p-4 rounded-lg text-left transition-all hover:shadow-lg"
-              style={{ backgroundColor: brandColors.secondary, color: 'white' }}
-            >
-              <div className="text-3xl mb-2">📈</div>
-              <h3 className="font-bold mb-1">View Analytics</h3>
-              <p className="text-sm opacity-90">Track your performance</p>
-            </button>
           </div>
         </div>
 
