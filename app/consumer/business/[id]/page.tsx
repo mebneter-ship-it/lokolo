@@ -265,7 +265,7 @@ export default function BusinessDetailPage() {
         {/* Action Buttons */}
         <div className="grid grid-cols-2 gap-3">
           <button
-            onClick={handleShareDirections}
+            onClick={handleShareLocation}
             className="flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-yellow-500 text-white px-4 py-3 rounded-xl font-semibold hover:from-orange-600 hover:to-yellow-600 transition-all shadow-md"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
