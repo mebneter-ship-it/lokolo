@@ -1,48 +1,37 @@
+// app/consumer/favorites/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import { brandColors } from '@/lib/theme';
-import FavoriteButton from '@/components/FavoriteButton';
 
-interface Business {
+interface FavoriteBusiness {
   id: string;
   business_name: string;
+  slug: string;
   category: string;
-  description: string;
   city: string;
-  cover_photo?: string;
+  latitude: number;
+  longitude: number;
   verification_status: string;
   favorited_at: string;
 }
 
-export default function MyFavoritesPage() {
+export default function FavoritesPage() {
   const router = useRouter();
+  const [favorites, setFavorites] = useState<FavoriteBusiness[]>([]);
   const [loading, setLoading] = useState(true);
-  const [favorites, setFavorites] = useState<Business[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUserId(user.uid);
+        fetchFavorites(user.uid);
+      } else {
         router.push('/login');
-        return;
-      }
-
-      try {
-        // Get user ID from database
-        const userResponse = await fetch(`/api/users/${user.uid}`);
-        const userData = await userResponse.json();
-        
-        if (userData.success) {
-          setUserId(userData.user.id);
-          fetchFavorites(userData.user.id);
-        }
-      } catch (error) {
-        console.error('Error fetching user:', error);
-        setLoading(false);
       }
     });
 
@@ -51,125 +40,157 @@ export default function MyFavoritesPage() {
 
   const fetchFavorites = async (uid: string) => {
     try {
-      const response = await fetch(`/api/favorites?user_id=${uid}`);
+      const response = await fetch(`/api/consumer/favorites?user_id=${uid}`);
       const data = await response.json();
-
-      if (data.success) {
-        setFavorites(data.favorites);
+      
+      if (response.ok) {
+        setFavorites(data.favorites || []);
       }
     } catch (error) {
-      console.error('Error fetching favorites:', error);
+      console.error('Failed to fetch favorites:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleRefresh = () => {
-    if (userId) {
-      setLoading(true);
-      fetchFavorites(userId);
+  const removeFavorite = async (businessId: string) => {
+    if (!userId) return;
+
+    try {
+      const response = await fetch(
+        `/api/consumer/favorites?user_id=${userId}&business_id=${businessId}`,
+        { method: 'DELETE' }
+      );
+
+      if (response.ok) {
+        setFavorites(favorites.filter(fav => fav.id !== businessId));
+      }
+    } catch (error) {
+      console.error('Failed to remove favorite:', error);
     }
+  };
+
+  const viewOnMap = (lat: number, lng: number) => {
+    router.push(`/consumer/map?lat=${lat}&lng=${lng}`);
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(to bottom right, #FFF7ED, #FEFCE8)' }}>
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-t-transparent" style={{ borderColor: brandColors.primary }}></div>
+      <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: brandColors.background }}>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderColor: brandColors.primary }}></div>
+          <p className="mt-4" style={{ color: brandColors.text.secondary }}>Loading favorites...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen" style={{ background: 'linear-gradient(to bottom right, #FFF7ED, #FEFCE8)' }}>
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <h1 className="text-3xl font-bold" style={{ color: brandColors.primary }}>
+    <div className="min-h-screen" style={{ backgroundColor: brandColors.background }}>
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2" style={{ color: brandColors.text.primary }}>
             My Favorites
           </h1>
-          <p className="text-gray-600 mt-2">
-            {favorites.length} saved {favorites.length === 1 ? 'business' : 'businesses'}
+          <p style={{ color: brandColors.text.secondary }}>
+            {favorites.length} {favorites.length === 1 ? 'business' : 'businesses'} saved
           </p>
         </div>
-      </div>
 
-      {/* Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Favorites List */}
         {favorites.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="inline-flex items-center justify-center w-24 h-24 rounded-full mb-6" style={{ backgroundColor: `${brandColors.primary}20` }}>
-              <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: brandColors.primary }}>
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">No Favorites Yet</h2>
-            <p className="text-gray-600 mb-6">
-              Start exploring and save your favorite businesses to see them here
+          <div className="text-center py-12">
+            <div className="mb-4 text-6xl">❤️</div>
+            <h2 className="text-xl font-semibold mb-2" style={{ color: brandColors.text.primary }}>
+              No favorites yet
+            </h2>
+            <p className="mb-6" style={{ color: brandColors.text.secondary }}>
+              Start exploring and save your favorite businesses
             </p>
             <button
               onClick={() => router.push('/consumer/map')}
-              className="px-6 py-3 rounded-xl font-semibold text-white transition-all hover:opacity-90"
+              className="px-6 py-3 rounded-lg font-medium text-white"
               style={{ backgroundColor: brandColors.primary }}
             >
-              Find Businesses
+              Explore Businesses
             </button>
           </div>
         ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {favorites.map((business) => (
               <div
                 key={business.id}
-                className="bg-white rounded-2xl shadow-lg overflow-hidden cursor-pointer transition-all hover:shadow-xl"
-                onClick={() => router.push(`/consumer/business/${business.id}`)}
+                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
               >
-                {/* Business Photo */}
-                <div className="relative h-48 overflow-hidden" style={{ background: 'linear-gradient(135deg, #F97316 0%, #EAB308 100%)' }}>
-                  {business.cover_photo ? (
-                    <img src={business.cover_photo} alt={business.business_name} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                      </svg>
-                    </div>
-                  )}
-                  
-                  {/* Favorite Button */}
-                  <div className="absolute top-3 right-3" onClick={(e) => e.stopPropagation()}>
-                    <FavoriteButton 
-                      businessId={business.id} 
-                      initialFavorited={true}
-                      size="md"
-                    />
-                  </div>
-
-                  {/* Verified Badge */}
-                  {business.verification_status === 'verified' && (
-                    <div className="absolute top-3 left-3 px-3 py-1 rounded-full flex items-center gap-1" style={{ backgroundColor: brandColors.accent }}>
-                      <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      <span className="text-xs font-medium text-white">Verified</span>
-                    </div>
-                  )}
+                {/* Business Image Placeholder */}
+                <div className="h-48 flex items-center justify-center" style={{ backgroundColor: brandColors.secondary }}>
+                  <span className="text-6xl">🏪</span>
                 </div>
 
                 {/* Business Info */}
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">{business.business_name}</h3>
-                  <p className="text-sm font-medium mb-2" style={{ color: brandColors.primary }}>
+                <div className="p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="text-lg font-semibold flex-1" style={{ color: brandColors.text.primary }}>
+                      {business.business_name}
+                    </h3>
+                    {business.verification_status === 'verified' && (
+                      <span className="text-xs px-2 py-1 rounded" style={{ 
+                        backgroundColor: brandColors.accent,
+                        color: 'white'
+                      }}>
+                        ✓ Verified
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="text-sm mb-1" style={{ color: brandColors.text.secondary }}>
                     {business.category}
                   </p>
-                  <p className="text-sm text-gray-600 mb-3">{business.city}</p>
-                  <p className="text-xs text-gray-500">
-                    Saved {new Date(business.favorited_at).toLocaleDateString()}
+                  <p className="text-sm mb-4" style={{ color: brandColors.text.secondary }}>
+                    📍 {business.city}
                   </p>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => router.push(`/consumer/business/${business.id}`)}
+                      className="flex-1 px-4 py-2 rounded-lg font-medium text-white"
+                      style={{ backgroundColor: brandColors.primary }}
+                    >
+                      View Details
+                    </button>
+                    <button
+                      onClick={() => viewOnMap(business.latitude, business.longitude)}
+                      className="px-4 py-2 rounded-lg font-medium"
+                      style={{ 
+                        backgroundColor: brandColors.background,
+                        color: brandColors.primary,
+                        border: `2px solid ${brandColors.primary}`
+                      }}
+                      title="View on Map"
+                    >
+                      🗺️
+                    </button>
+                    <button
+                      onClick={() => removeFavorite(business.id)}
+                      className="px-4 py-2 rounded-lg font-medium"
+                      style={{ 
+                        backgroundColor: brandColors.background,
+                        color: '#EF4444',
+                        border: '2px solid #EF4444'
+                      }}
+                      title="Remove from Favorites"
+                    >
+                      ❤️
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         )}
-      </main>
+      </div>
     </div>
   );
 }

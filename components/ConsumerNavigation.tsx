@@ -1,105 +1,126 @@
+// components/ConsumerNavigation.tsx
 'use client';
 
-import { useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { auth } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
 import { brandColors } from '@/lib/theme';
-import Image from 'next/image';
 
 export default function ConsumerNavigation() {
-  const router = useRouter();
   const pathname = usePathname();
+  const router = useRouter();
 
-  const handleLogout = async () => {
+  const handleSignOut = async () => {
     try {
       await signOut(auth);
       router.push('/login');
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('Sign out error:', error);
     }
   };
 
   const navItems = [
-    { name: 'Find Businesses', path: '/consumer/map', icon: 'map' },
-    { name: 'My Favorites', path: '/consumer/favorites', icon: 'heart' },
-    { name: 'Profile', path: '/consumer/profile', icon: 'user' },
-  ];
-
-  const isActive = (path: string) => pathname === path;
+  {
+    name: 'Find Businesses',  // Changed from 'Map'
+    href: '/consumer/map',
+    icon: '🗺️'
+  },
+  {
+    name: 'My Favorites',     // Changed from 'Favorites'
+    href: '/consumer/favorites',
+    icon: '❤️'
+  },
+  {
+    name: 'Profile',
+    href: '/consumer/profile',
+    icon: '👤'
+  }
+];
 
   return (
-    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+    <nav className="border-b" style={{ 
+      backgroundColor: 'white',
+      borderColor: brandColors.background
+    }}>
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => router.push('/consumer')}>
-            <Image
-              src="/lokolo-logo.png"
-              alt="Lokolo"
-              width={40}
-              height={40}
-              className="rounded"
-            />
+          <Link href="/consumer/map" className="flex items-center gap-2">
+            <span className="text-2xl">🛍️</span>
             <span className="text-xl font-bold" style={{ color: brandColors.primary }}>
               Lokolo
             </span>
-          </div>
+          </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-6">
-            {navItems.map((item) => (
-              <button
-                key={item.path}
-                onClick={() => router.push(item.path)}
-                className={`font-medium transition-colors ${
-                  isActive(item.path)
-                    ? 'font-semibold'
-                    : 'hover:opacity-80'
-                }`}
-                style={{ color: isActive(item.path) ? brandColors.primary : brandColors.textLight }}
-              >
-                {item.name}
-              </button>
-            ))}
-            
+          <div className="hidden md:flex items-center gap-1">
+            {navItems.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
+                  style={{
+                    backgroundColor: isActive ? brandColors.secondary : 'transparent',
+                    color: isActive ? brandColors.text.primary : brandColors.text.secondary
+                  }}
+                >
+                  <span>{item.icon}</span>
+                  <span>{item.name}</span>
+                </Link>
+              );
+            })}
             <button
-              onClick={handleLogout}
-              className="px-4 py-2 rounded-lg font-semibold text-white transition-all hover:opacity-90"
-              style={{ backgroundColor: brandColors.primary }}
+              onClick={handleSignOut}
+              className="ml-4 px-4 py-2 rounded-lg font-medium"
+              style={{ 
+                backgroundColor: brandColors.background,
+                color: brandColors.text.secondary
+              }}
             >
-              Logout
+              Sign Out
             </button>
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Navigation */}
           <div className="md:hidden">
             <button
-              onClick={handleLogout}
-              className="px-4 py-2 rounded-lg font-semibold text-white"
-              style={{ backgroundColor: brandColors.primary }}
+              onClick={handleSignOut}
+              className="px-4 py-2 rounded-lg text-sm font-medium"
+              style={{ 
+                backgroundColor: brandColors.background,
+                color: brandColors.text.secondary
+              }}
             >
-              Logout
+              Sign Out
             </button>
           </div>
         </div>
 
-        {/* Mobile Navigation */}
-        <div className="md:hidden flex gap-4 pb-3 overflow-x-auto">
-          {navItems.map((item) => (
-            <button
-              key={item.path}
-              onClick={() => router.push(item.path)}
-              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                isActive(item.path) ? 'text-white' : ''
-              }`}
-              style={{
-                backgroundColor: isActive(item.path) ? brandColors.primary : `${brandColors.primary}20`,
-                color: isActive(item.path) ? 'white' : brandColors.primary
-              }}
-            >
-              {item.name}
-            </button>
-          ))}
+        {/* Mobile Menu */}
+        <div className="md:hidden pb-4">
+          <div className="flex gap-2">
+            {navItems.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="flex-1 px-3 py-2 rounded-lg font-medium text-center transition-colors"
+                  style={{
+                    backgroundColor: isActive ? brandColors.secondary : brandColors.background,
+                    color: isActive ? brandColors.text.primary : brandColors.text.secondary
+                  }}
+                >
+                  <div className="text-xl mb-1">{item.icon}</div>
+                  <div className="text-xs">{item.name}</div>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </div>
     </nav>
