@@ -65,7 +65,7 @@ export default function ConsumerNavigation() {
                   className="px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
                   style={{
                     backgroundColor: isActive ? brandColors.secondary : 'transparent',
-                    color: isActive ? brandColors.text.primary : brandColors.text.secondary
+                    color: isActive ? brandColors.text : brandColors.textLight
                   }}
                 >
                   <span>{item.icon}</span>
@@ -78,7 +78,7 @@ export default function ConsumerNavigation() {
               className="ml-4 px-4 py-2 rounded-lg font-medium"
               style={{ 
                 backgroundColor: brandColors.background,
-                color: brandColors.text.secondary
+                color: brandColors.textLight
               }}
             >
               Sign Out
@@ -92,7 +92,7 @@ export default function ConsumerNavigation() {
               className="px-4 py-2 rounded-lg text-sm font-medium"
               style={{ 
                 backgroundColor: brandColors.background,
-                color: brandColors.text.secondary
+                color: brandColors.textLight
               }}
             >
               Sign Out
@@ -112,7 +112,7 @@ export default function ConsumerNavigation() {
                   className="flex-1 px-3 py-2 rounded-lg font-medium text-center transition-colors"
                   style={{
                     backgroundColor: isActive ? brandColors.secondary : brandColors.background,
-                    color: isActive ? brandColors.text.primary : brandColors.text.secondary
+                    color: isActive ? brandColors.text : brandColors.textLight
                   }}
                 >
                   <div className="text-xl mb-1">{item.icon}</div>

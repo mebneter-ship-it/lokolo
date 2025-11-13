@@ -79,7 +79,7 @@ export default function FavoritesPage() {
       <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: brandColors.background }}>
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderColor: brandColors.primary }}></div>
-          <p className="mt-4" style={{ color: brandColors.text.secondary }}>Loading favorites...</p>
+          <p className="mt-4" style={{ color: brandColors.textLight }}>Loading favorites...</p>
         </div>
       </div>
     );
@@ -90,10 +90,10 @@ export default function FavoritesPage() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2" style={{ color: brandColors.text.primary }}>
+          <h1 className="text-3xl font-bold mb-2" style={{ color: brandColors.text }}>
             My Favorites
           </h1>
-          <p style={{ color: brandColors.text.secondary }}>
+          <p style={{ color: brandColors.textLight }}>
             {favorites.length} {favorites.length === 1 ? 'business' : 'businesses'} saved
           </p>
         </div>
@@ -102,10 +102,10 @@ export default function FavoritesPage() {
         {favorites.length === 0 ? (
           <div className="text-center py-12">
             <div className="mb-4 text-6xl">❤️</div>
-            <h2 className="text-xl font-semibold mb-2" style={{ color: brandColors.text.primary }}>
+            <h2 className="text-xl font-semibold mb-2" style={{ color: brandColors.text }}>
               No favorites yet
             </h2>
-            <p className="mb-6" style={{ color: brandColors.text.secondary }}>
+            <p className="mb-6" style={{ color: brandColors.textLight }}>
               Start exploring and save your favorite businesses
             </p>
             <button
@@ -131,7 +131,7 @@ export default function FavoritesPage() {
                 {/* Business Info */}
                 <div className="p-4">
                   <div className="flex items-start justify-between mb-2">
-                    <h3 className="text-lg font-semibold flex-1" style={{ color: brandColors.text.primary }}>
+                    <h3 className="text-lg font-semibold flex-1" style={{ color: brandColors.text }}>
                       {business.business_name}
                     </h3>
                     {business.verification_status === 'verified' && (
@@ -144,10 +144,10 @@ export default function FavoritesPage() {
                     )}
                   </div>
 
-                  <p className="text-sm mb-1" style={{ color: brandColors.text.secondary }}>
+                  <p className="text-sm mb-1" style={{ color: brandColors.textLight }}>
                     {business.category}
                   </p>
-                  <p className="text-sm mb-4" style={{ color: brandColors.text.secondary }}>
+                  <p className="text-sm mb-4" style={{ color: brandColors.textLight }}>
                     📍 {business.city}
                   </p>
 

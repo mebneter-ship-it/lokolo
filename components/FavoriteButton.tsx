@@ -42,7 +42,9 @@ export default function FavoriteButton({
       const response = await fetch(`/api/favorites?user_id=${uid}`);
       const data = await response.json();
       if (data.success) {
-        const favorited = data.favorites.some((fav: any) => fav.id === businessId);
+        const favorited = data.favorites.some(
+          (fav: any) => fav.id === businessId || fav.business_id === businessId
+        );
         setIsFavorited(favorited);
       }
     } catch (error) {

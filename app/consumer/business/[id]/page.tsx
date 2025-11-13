@@ -78,7 +78,7 @@ export default function BusinessDetailPage() {
       <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: brandColors.background }}>
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderColor: brandColors.primary }}></div>
-          <p className="mt-4" style={{ color: brandColors.text.secondary }}>Loading business...</p>
+          <p className="mt-4" style={{ color: brandColors.textLight }}>Loading business...</p>
         </div>
       </div>
     );
@@ -88,7 +88,7 @@ export default function BusinessDetailPage() {
     return (
       <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: brandColors.background }}>
         <div className="text-center">
-          <h2 className="text-xl font-semibold mb-4" style={{ color: brandColors.text.primary }}>
+          <h2 className="text-xl font-semibold mb-4" style={{ color: brandColors.text }}>
             Business not found
           </h2>
           <button
@@ -119,13 +119,13 @@ export default function BusinessDetailPage() {
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <div className="flex items-start justify-between mb-4">
             <div className="flex-1">
-              <h1 className="text-3xl font-bold mb-2" style={{ color: brandColors.text.primary }}>
+              <h1 className="text-3xl font-bold mb-2" style={{ color: brandColors.text }}>
                 {business.business_name}
               </h1>
               <div className="flex items-center gap-3 flex-wrap">
                 <span className="px-3 py-1 rounded-full text-sm font-medium" style={{ 
                   backgroundColor: brandColors.secondary,
-                  color: brandColors.text.primary
+                  color: brandColors.text
                 }}>
                   {business.category}
                 </span>
@@ -138,12 +138,12 @@ export default function BusinessDetailPage() {
                 )}
               </div>
             </div>
-            <FavoriteButton businessId={business.id} variant="icon" />
+            <FavoriteButton businessId={business.id} size="md" />
           </div>
 
           {/* Description */}
           {business.description && (
-            <p className="mb-6" style={{ color: brandColors.text.secondary }}>
+            <p className="mb-6" style={{ color: brandColors.textLight }}>
               {business.description}
             </p>
           )}
@@ -153,10 +153,10 @@ export default function BusinessDetailPage() {
             <div className="flex items-start gap-3">
               <span className="text-xl">📍</span>
               <div>
-                <p style={{ color: brandColors.text.primary }}>
+                <p style={{ color: brandColors.text }}>
                   {business.address || business.city}
                 </p>
-                <p className="text-sm" style={{ color: brandColors.text.secondary }}>
+                <p className="text-sm" style={{ color: brandColors.textLight }}>
                   {business.city}
                 </p>
               </div>
@@ -229,7 +229,7 @@ export default function BusinessDetailPage() {
 
         {/* Map Preview */}
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4" style={{ color: brandColors.text.primary }}>
+          <h2 className="text-xl font-semibold mb-4" style={{ color: brandColors.text }}>
             Location
           </h2>
           <div className="aspect-video rounded-lg overflow-hidden" style={{ backgroundColor: brandColors.background }}>
